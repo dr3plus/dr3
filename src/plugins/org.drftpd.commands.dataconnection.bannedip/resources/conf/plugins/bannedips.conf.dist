@@ -1,0 +1,23 @@
+####
+# Banned IP-range
+#
+# 1.iprange=188.163 = OVH
+# 2.iprange=188.164 = OVH
+# 3.iprange=188.165 = OVH
+# 4.iprange=85.100 = LEASEWEB
+# 5.iprange=127.0 = OHNOHACK
+#
+# 1.ip=127.0.0.1
+#
+# message=IP RANGE NOT ALLOWED
+####
+
+#1.iprange=188.163
+#2.iprange=188.164
+#3.iprange=188.165
+#4.iprange=85.100
+#5.iprange=127.0
+
+#1.ip=127.0.0.1
+
+message=---=FAILED DUE TO BANNED SOURCE IP=----

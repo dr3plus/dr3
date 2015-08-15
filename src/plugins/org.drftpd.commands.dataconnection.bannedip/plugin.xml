@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<!DOCTYPE plugin PUBLIC "-//JPF//Java Plug-in Manifest 1.0" "http://jpf.sourceforge.net/plugin_1_0.dtd">
+<plugin id="org.drftpd.commands.dataconnection.bannedip" version="3.0.0">
+	<doc>
+		<doc-text>(Optional) - This plugin provides Data Connection commands.   
+(PORT)</doc-text>
+	</doc>
+	<attributes>
+		<attribute id="DefaultBuild" value="false" />
+		<attribute id="MustBuild" value="false" />
+	</attributes>
+	<requires>
+		<import plugin-id="org.drftpd.commandmanager" exported="true" ></import>
+		<import plugin-id="org.drftpd.commands.prehook.permissions" exported="true" />
+	</requires>
+	<runtime>
+		<library id="org.drftpd.commands.dataconnection.bannedip" path="classes/" type="code">
+			<export prefix="*" ></export>
+		</library>
+	</runtime>
+	<extension-point id="PreHook" parent-plugin-id="org.drftpd.commandmanager" parent-point-id="CommandPreHook" />
+	<extension-point id="PostHook" parent-plugin-id="org.drftpd.commandmanager" parent-point-id="CommandPostHook" />
+
+	<extension plugin-id="org.drftpd.commandmanager" point-id="Command" id="Bannedip" />
+	<extension plugin-id="org.drftpd.commands.dataconnection.bannedip" point-id="PreHook" id="doPORTPerm">
+		<parameter id="ParentMethod" value="doBannedPORT" />
+		<parameter id="HookClass" value="org.drftpd.commands.prehook.permissions.PermissionPreHook" />
+		<parameter id="HookMethod" value="doPermissionCheck" />
+		<parameter id="Priority" value="1" />
+	</extension>
+	
+</plugin>

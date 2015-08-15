@@ -1,0 +1,45 @@
+#!/bin/sh
+# DrFTPd-slave crontab
+#
+# To add the cron job in linux type "crontab -e" and add this record. (Of course with fixed path)
+#
+#   */5 * * * * /drftpd/slave.chk >/dev/null 2>&1
+#
+######### Edit the following lines #########################
+
+# Commands executed from cron won't have the default bash environment variables. So we set the required ones here
+# Path to your java jdk or sdk bin
+PATH=$PATH:/usr/local/java/bin
+export PATH
+
+# Where is slave.sh is?
+dir=$(dirname $(readlink -m $0))
+
+# Executable and arguments (below are the default settings):
+drftpdexe="./slave.sh start"
+
+# DrFTPd PID File (below are the defaults):
+drftpdname="slave.pid"
+
+########## Dont touch anything below this line  ############
+
+cd $dir
+if test -r $drftpdname; then
+  # there is a pid file -- is it current?
+  drftpdpid=`cat $drftpdname`
+  if `kill -CHLD $drftpdpid`; then
+    # it's still going
+    # back out quietly
+    exit 0
+  fi
+  echo "DrFTPd Crontab notice:"
+  echo ""
+  echo "Stale $drftpdname file (erasing it)"
+  rm -f $drftpdname
+fi
+echo ""
+echo "Couldn't find a DrFTPD slave running. Starting it..."
+echo ""
+$drftpdexe
+
+exit 0

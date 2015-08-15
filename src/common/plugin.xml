@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<!DOCTYPE plugin PUBLIC "-//JPF//Java Plug-in Manifest 1.0" "http://jpf.sourceforge.net/plugin_1_0.dtd">
+<!-- $Id: plugin.xml 2026 2010-02-14 15:33:15Z djb61 $ -->
+<plugin id="common" version="3.0.0">
+	<doc>
+		<doc-text>(Required) - These are the common resources between the master and slave.</doc-text>
+	</doc>	
+	<attributes>
+		<attribute id="DenyUnload" value="true" />
+		<attribute id="DefaultBuild" value="true" />
+		<attribute id="MustBuild" value="true" />
+		<attribute id="Native">
+			<attribute id="Native1" value="lib/libwrapper-linux-x86-32.so">
+				<attribute id="Executable" value="false" />
+			</attribute>
+			<attribute id="Native2" value="lib/libwrapper-linux-x86-64.so">
+				<attribute id="Executable" value="false" />
+			</attribute>
+			<attribute id="Native3" value="lib/libwrapper-freebsd-x86-32.so">
+				<attribute id="Executable" value="false" />
+			</attribute>
+			<attribute id="Native4" value="lib/libwrapper-freebsd-x86-64.so">
+				<attribute id="Executable" value="false" />
+			</attribute>
+			<attribute id="Native5" value="lib/libwrapper-macosx-universal-32.jnilib">
+				<attribute id="Executable" value="false" />
+			</attribute>
+			<attribute id="Native6" value="lib/libwrapper-macosx-universal-64.jnilib">
+				<attribute id="Executable" value="false" />
+			</attribute>
+			<attribute id="Native7" value="lib/wrapper-windows-x86-32.dll">
+				<attribute id="Executable" value="false" />
+			</attribute>
+			<attribute id="Native8" value="lib/wrapper.jar">
+				<attribute id="Executable" value="false" />
+			</attribute>
+			<attribute id="Native9" value="bin/wrapper-linux-x86-32">
+				<attribute id="Executable" value="true" />
+			</attribute>
+			<attribute id="Native10" value="bin/wrapper-linux-x86-64">
+				<attribute id="Executable" value="true" />
+			</attribute>
+			<attribute id="Native11" value="bin/wrapper-freebsd-x86-32">
+				<attribute id="Executable" value="true" />
+			</attribute>
+			<attribute id="Native12" value="bin/wrapper-freebsd-x86-64">
+				<attribute id="Executable" value="true" />
+			</attribute>
+			<attribute id="Native13" value="bin/wrapper-macosx-universal-32">
+				<attribute id="Executable" value="true" />
+			</attribute>
+			<attribute id="Native14" value="bin/wrapper-macosx-universal-64">
+				<attribute id="Executable" value="true" />
+			</attribute>
+			<attribute id="Native15" value="bin/wrapper-windows-x86-32.exe">
+				<attribute id="Executable" value="false" />
+			</attribute>
+		</attribute>
+	</attributes>
+	<runtime>
+		<library id="common" path="classes/" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="junit" path="../../lib/junit-4.8.2.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="log4j" path="../../lib/log4j-1.2.16.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="oro" path="../../lib/jakarta-oro-2.0.8.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="commons-logging" path="../../lib/commons-logging-1.1.1.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="jpf" path="../../lib/jpf-1.5.1.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="jpf-boot" path="../../lib/jpf-boot-1.5.1.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="drftpd-jpf" path="../../lib/drftpd-jpf-3.0.0.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="commons-lang" path="../../lib/commons-lang-2.6.jar" type="code">
+			<export prefix="*" />
+		</library>
+	</runtime>
+</plugin>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id: build.xml 2016 2009-09-11 05:30:21Z scitz0 $ -->
+<project name="org.drftpd.plugins.sitebot.announce.request"
+         default="build">
+	<property name="plugin.family" value="plugins/master" />
+	<target name="build">
+		<buildplugin />
+	</target>
+	<target name="clean">
+		<cleanplugin />
+	</target>
+</project>
