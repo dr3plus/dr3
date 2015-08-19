@@ -757,7 +757,7 @@ public abstract class ArchiveType {
 			if (splittype.length() > 1) {
 				String retstr = splittype;
 				if (retstr.contains("${rls}")) {
-					Pattern pattern = Pattern.compile("(?i)(A-z\\W_0-9)[\\W_][SE][\\d]+");
+					Pattern pattern = Pattern.compile("(?i)([A-z\\W_\\d]+)[\\W_][SE][\\d]+");
 					Matcher matcher = pattern.matcher(inode.getName());
 					if(matcher.matches()) {
 						retstr = retstr.replaceAll("\\$\\{rls\\}", matcher.group(1));
