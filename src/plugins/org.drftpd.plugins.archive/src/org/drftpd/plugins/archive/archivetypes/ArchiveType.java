@@ -691,8 +691,8 @@ public abstract class ArchiveType {
 				if (type != null) {
 					DirectoryHandle typeInode = new DirectoryHandle(_archiveToFolder.getPath() + VirtualFileSystem.separator + type);
 					if (!typeInode.exists()) {
-
-			        	// dir doesn't exist.  Lets check if Parent does        	
+						
+			        	// dir doesn't exist.  Lets check if Parent does
 			        	if (!createDirectories(typeInode.getParent())) {
 				        	logger.warn("Cannot Archive '" + getDirectory().getPath() + "' to '" + _archiveToFolder.getPath() + " : Failed to create Parent Directories");
 				        	return false;
@@ -702,7 +702,7 @@ public abstract class ArchiveType {
 			    		try {
 			    			typeInode.getParent().createDirectorySystem(typeInode.getName());
 			    		} catch (FileExistsException e) {
-			    			// ignore...directory now exists 
+			    			// ignore...directory now exists
 			    		} catch (FileNotFoundException e) {
 			    			logger.warn("Cannot Archive '" + getDirectory().getPath() + "' to '" + _archiveToFolder.getPath() + " unable to create dir type '" + typeInode.getPath() + "'" );
 			    			return false;
@@ -716,7 +716,7 @@ public abstract class ArchiveType {
 				if (type != null) {
 					toInode = new DirectoryHandle(_archiveToFolder.getPath() + VirtualFileSystem.separator + type + VirtualFileSystem.separator + fromDir.getName());					
 				}
-
+				
 				fromDir.renameToUnchecked(toInode);
 				_destinationDirectory = toInode;
 				return true;
@@ -724,7 +724,7 @@ public abstract class ArchiveType {
 				logger.warn("Cannot Archive '" + getDirectory().getPath() + "' to '" + _archiveToFolder.getPath() + " because it already exists at destination"); 
 			} catch (FileNotFoundException e) {
 				logger.warn("Cannot Archive '" + getDirectory().getPath() + "' to '" + _archiveToFolder.getPath() + " because '" + getDirectory().getPath() + "' no longer exists");
-			}			
+			}
 		} else {
 			// No need to move directory, so lets return true
 			return true;
@@ -757,7 +757,7 @@ public abstract class ArchiveType {
 			if (splittype.length() > 1) {
 				String retstr = splittype;
 				if (retstr.contains("${rls}")) {
-					Pattern pattern = Pattern.compile("(?i)([A-z\\W_\\d]+)[\\W_][SE][\\d]+");
+					Pattern pattern = Pattern.compile("(?i)(.*)(\\.|-|_)S\\d.*");
 					Matcher matcher = pattern.matcher(inode.getName());
 					if(matcher.matches()) {
 						retstr = retstr.replaceAll("\\$\\{rls\\}", matcher.group(1));
@@ -767,13 +767,13 @@ public abstract class ArchiveType {
 					return "UNKNOWN"; 
 				}				
 				if (retstr.contains("${season}")) {
-					Pattern pattern = Pattern.compile("(?i).*?s([\\d]+)[E\\W_][\\dE]+");
+					Pattern pattern = Pattern.compile("(?i)(.*\\.|\\-|_)s(\\d|\\d\\d)((\\.|\\-|_)(e|d)|(e|d)).*");
 					Matcher matcher = pattern.matcher(inode.getName());
 					if(matcher.matches()) {
-						if (matcher.group(1).length() < 2) {
-							retstr = retstr.replaceAll("\\$\\{season\\}", 0 + matcher.group(1));	
+						if (matcher.group(2).length() < 2) {
+							retstr = retstr.replaceAll("\\$\\{season\\}", 0 + matcher.group(2));	
 						} else {
-							retstr = retstr.replaceAll("\\$\\{season\\}", matcher.group(1));
+							retstr = retstr.replaceAll("\\$\\{season\\}", matcher.group(2));
 						}
 					}
 				}
@@ -781,13 +781,13 @@ public abstract class ArchiveType {
 					return "UNKNOWN"; 
 				}
 				if (retstr.contains("${episode}")) {
-					Pattern pattern = Pattern.compile("(?i).*?s[\\d]+([E\\W_][\\dE]+)");
+					Pattern pattern = Pattern.compile("(?i)(.*\\.|\\-|_)s\\d.*e(\\d|\\d\\d)(\\.|\\-|_).*");
 					Matcher matcher = pattern.matcher(inode.getName());
 					if(matcher.matches()) {
-						if (matcher.group(1).length() < 2) {
-							retstr = retstr.replaceAll("\\$\\{season\\}", 0 + matcher.group(1));	
+						if (matcher.group(2).length() < 2) {
+							retstr = retstr.replaceAll("\\$\\{season\\}", 0 + matcher.group(2));	
 						} else {
-							retstr = retstr.replaceAll("\\$\\{season\\}", matcher.group(1));
+							retstr = retstr.replaceAll("\\$\\{season\\}", matcher.group(2));
 						}
 					}
 				}

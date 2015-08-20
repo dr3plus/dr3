@@ -552,15 +552,21 @@ public class SlaveManagement extends CommandInterface {
 			}
 			
 			int size = rslave.doRemergequeue();
-			if (size > 0)
+			if (!rslave.isOnline())
 			{
-				//GlobalContext.getEventService().publishAsync(new SlaveEvent("MSGSLAVE", "remergeque size is " + size, rslave));
+				arr.add(rslave.getName() +" is offline");
+			}
+			else if (!rslave.isRemerging())
+			{
+				arr.add(rslave.getName() +" remergeque is complete");
+			}
+			else if (size > 0)
+			{
 				arr.add(rslave.getName() +" remergeque size is " + size);
 			}
 			else
 			{
-				// GlobalContext.getEventService().publishAsync(new SlaveEvent("MSGSLAVE", "remergeque is complete", rslave));
-				arr.add(rslave.getName() +" remergeque is complete");
+				arr.add(rslave.getName() +" remergeque size is 0 but remerge is ongoing");				
 			}
 		}
 		arr.add("Total commit:" + CommitManager.getCommitManager().getQueueSize());
