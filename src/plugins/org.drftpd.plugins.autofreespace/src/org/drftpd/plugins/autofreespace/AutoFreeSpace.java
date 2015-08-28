@@ -106,6 +106,7 @@ public class AutoFreeSpace implements PluginInterface {
 		private ArrayList<String> _excludeFiles;
 		private HashMap<String,Section> _sections;
 		private long _minFreeSpace;
+		private ArrayList<String> checkedReleases = new ArrayList<String>();
 
 		public MrCleanit(ArrayList<String> excludeFiles, long minFreeSpace, HashMap<String,Section> sections) {
 			_excludeFiles = excludeFiles;
@@ -213,7 +214,7 @@ public class AutoFreeSpace implements PluginInterface {
 					long _archiveAfter=section.getWipeAfter();
 
 					if (oldest == null || file.lastModified() < oldest.lastModified()) {
-						if (age > _archiveAfter) {
+						if (age > _archiveAfter && !checkedReleases.contains(file.getName())) {
 							oldest = file;
 							logger.debug("AUTODELETE: New oldest file: " + oldest.getName() + ", oldest in section " + si.getName());
 						} else if (deleteOnSpace) {
@@ -244,6 +245,7 @@ public class AutoFreeSpace implements PluginInterface {
 							while ((oldestRelease = getOldestRelease(remoteSlave)) != null) {
 								GlobalContext.getEventService().publishAsync(new AFSEvent(oldestRelease, remoteSlave));
 								if (_onlyAnnounce) {
+									checkedReleases.add(oldestRelease.getName());
 									continue;
 								}
 								oldestRelease.deleteUnchecked();

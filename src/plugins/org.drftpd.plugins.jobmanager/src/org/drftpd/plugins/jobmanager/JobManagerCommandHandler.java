@@ -192,7 +192,7 @@ public class JobManagerCommandHandler extends CommandInterface {
 		treeSet.addAll(getJobManager().getAllJobsFromQueue());
 
 		for (Job job : treeSet) {
-			env.add("job", job.getFile());
+			env.add("job", job.getFile().getPath());
 			env.add("count", job.getIndex());
 			synchronized (job) {
 				if (job.isTransferring()) {
