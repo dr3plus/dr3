@@ -83,6 +83,8 @@ public class Slave {
 
 	private String[] _cipherSuites;
 
+	private String[] _sslProtocols;
+
 	private SSLContext _ctx;
 
 	private boolean _downloadChecksums;
@@ -147,6 +149,7 @@ public class Slave {
 		} catch (Exception e) {
 			logger.warn("Error loading SSLContext, no secure connections will be available.");
 			_cipherSuites = null;
+			_sslProtocols = null;
 		}
 
 		ArrayList<String> cipherSuites = new ArrayList<String>();
@@ -162,6 +165,21 @@ public class Slave {
 			_cipherSuites = null;
 		} else {
 			_cipherSuites = cipherSuites.toArray(new String[cipherSuites.size()]);
+		}
+
+		ArrayList<String> sslProtocols = new ArrayList<String>();
+		for (int x = 1;; x++) {
+			String sslProtocol = p.getProperty("protocol." + x);
+			if (sslProtocol != null) {
+				sslProtocols.add(sslProtocol);
+			} else {
+				break;
+			}
+		}
+		if (sslProtocols.size() == 0) {
+			_sslProtocols = null;
+		} else {
+			_sslProtocols = sslProtocols.toArray(new String[sslProtocols.size()]);
 		}
 
 		_sslMaster = p.getProperty("slave.masterSSL", "false").equalsIgnoreCase("true");
@@ -194,6 +212,9 @@ public class Slave {
 		if (_s instanceof SSLSocket) {
 			if (getCipherSuites() != null) {
 				((SSLSocket) _s).setEnabledCipherSuites(getCipherSuites());
+			}
+			if (getSSLProtocols() != null) {
+				((SSLSocket) _s).setEnabledProtocols(getSSLProtocols());
 			}
 			((SSLSocket) _s).setUseClientMode(true);
 			
@@ -710,6 +731,14 @@ public class Slave {
 			return null;
 		}
 		return _cipherSuites;
+	}
+
+	public String[] getSSLProtocols() {
+		// returns null if none are configured explicitly
+		if (_sslProtocols == null) {
+			return null;
+		}
+		return _sslProtocols;
 	}
 	
 	public HashMap<TransferIndex, Transfer> getTransferMap() {

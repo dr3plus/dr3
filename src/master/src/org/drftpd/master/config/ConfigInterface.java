@@ -76,6 +76,8 @@ public interface ConfigInterface {
 
 	public String[] getCipherSuites();
 
+	public String[] getSSLProtocols();
+
 	public String getHideInStats();
 
 }
