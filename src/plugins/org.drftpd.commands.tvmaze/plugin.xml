@@ -20,6 +20,21 @@ IRC announce on MKD/PRE event and tvmaze info dir in release dir is also availab
 		<library id="org.drftpd.commands.tvmaze" path="classes/" type="code">
 			<export prefix="*" />
 		</library>
+		<library id="commons-lang" path="../../lib/commons-lang3-3.4.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="gson" path="../../../lib/gson-2.4.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="httpclient" path="../../../lib/httpclient-4.5.1.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="httpcore" path="../../../lib/httpcore-4.4.3.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="joda-time" path="../../../lib/joda-time-2.9.jar" type="code">
+			<export prefix="*" />
+		</library>
 	</runtime>
 
     <extension-point id="PreHook" parent-plugin-id="org.drftpd.commandmanager" parent-point-id="CommandPreHook" />
