@@ -48,9 +48,7 @@ public class TvEpisode  implements Serializable {
 	public int getSeason () {
 		return _season;
 	}
-	public int getNumber () {
-		return _number;
-	}
+	public int getNumber () { return _number; }
 	public String getAirDate () {
 		return _airdate;
 	}
