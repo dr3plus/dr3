@@ -9,7 +9,7 @@
 		<attribute id="DenyUnload" value="true" />
 	</attributes>
 	<requires>
-		<import plugin-id="org.drftpd.protocol.tvmaze.common" exported="true" />
+		<import plugin-id="org.drftpd.commands.tvmaze.metadata" exported="true" />
 		<import plugin-id="org.drftpd.vfs.index.lucene" exported="true" />
 	</requires>
 	<runtime>
