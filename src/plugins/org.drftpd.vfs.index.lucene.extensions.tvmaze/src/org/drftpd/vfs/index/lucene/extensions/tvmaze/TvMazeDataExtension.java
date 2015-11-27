@@ -32,7 +32,7 @@ import org.drftpd.vfs.index.lucene.extensions.IndexDataExtensionInterface;
  */
 public class TvMazeDataExtension implements IndexDataExtensionInterface {
 
-	private static final Field FIELD_NAME = new Field("tvmazedirector", "", Field.Store.YES, Field.Index.ANALYZED);
+	private static final Field FIELD_NAME = new Field("tvmazename", "", Field.Store.YES, Field.Index.ANALYZED);
 	private static final Field FIELD_GENRE = new Field("tvmazegenre", "", Field.Store.YES, Field.Index.ANALYZED);
 	private static final NumericField FIELD_SEASON = new NumericField("tvmazeseason", Field.Store.YES, Boolean.TRUE);
 	private static final NumericField FIELD_NUMBER = new NumericField("tvmazenumber", Field.Store.YES, Boolean.TRUE);
@@ -75,7 +75,7 @@ public class TvMazeDataExtension implements IndexDataExtensionInterface {
 			FIELD_NETWORK.setValue("");
 		} else {
 			FIELD_NAME.setValue(tvmazeInfo.getName());
-			FIELD_GENRE.setValue(StringUtils.join(tvmazeInfo.getGenres().toString(), " "));
+			FIELD_GENRE.setValue(StringUtils.join(tvmazeInfo.getGenres(), " "));
 			if (tvmazeInfo.getEPList().length == 1) {
 				FIELD_SEASON.setIntValue(tvmazeInfo.getEPList()[0].getSeason());
 				FIELD_NUMBER.setIntValue(tvmazeInfo.getEPList()[0].getNumber());
