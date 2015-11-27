@@ -76,7 +76,7 @@ public class TvMazeParser {
 
 			newSearchString = TvMazeUtils.filterTitle(newSearchString);
 
-			newSearchString = _searchUrl + newSearchString.replaceAll("\\s","%20");
+			newSearchString = _searchUrl + newSearchString;
 
 			if (season >= 0) {
 				newSearchString += "&embed=episodes";

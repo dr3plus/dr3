@@ -309,10 +309,10 @@ public class TvMazeUtils {
 		}
 		//remove seperators
 		for (String separator : _seperators) {
-			newTitle = newTitle.replaceAll("\\"+separator.toLowerCase(),"%20");
+			newTitle = newTitle.replaceAll("\\"+separator.toLowerCase()," ");
 		}
 		//remove extra spaces
-		newTitle = newTitle.replaceAll("\\s","%20");
+		newTitle = newTitle.replaceAll("\\s+","%20");
 		return newTitle;
 	}
 
@@ -432,7 +432,7 @@ public class TvMazeUtils {
 	}
 
 	public static boolean isRelease(String dirName) {
-		Pattern p = Pattern.compile("(\\w{1,}\\.){3,}\\w{1,}-\\w{1,}");
+		Pattern p = Pattern.compile("(\\w+\\.){3,}\\w+-\\w+");
 		Matcher m = p.matcher(dirName);
 		return m.find();
 	}
