@@ -49,10 +49,10 @@ public class TvMazeOption implements OptionInterface {
 			queryParams.setGenre(args[0]);
 			params.setInodeType(AdvancedSearchParams.InodeType.DIRECTORY);
 		} else if (option.equalsIgnoreCase("-tvseason")) {
-			queryParams.setSeason(Integer.getInteger(args[0]));
+			queryParams.setSeason(Integer.parseInt(args[0]));
 			params.setInodeType(AdvancedSearchParams.InodeType.DIRECTORY);
 		} else if (option.equalsIgnoreCase("-tvnumber")) {
-			queryParams.setNumber(Integer.getInteger(args[0]));
+			queryParams.setNumber(Integer.parseInt(args[0]));
 			params.setInodeType(AdvancedSearchParams.InodeType.DIRECTORY);
 		} else if (option.equalsIgnoreCase("-tvtype")) {
 			queryParams.setType(args[0]);
