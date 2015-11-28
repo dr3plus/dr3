@@ -22,11 +22,15 @@ import org.bushe.swing.event.annotation.AnnotationProcessor;
 import org.bushe.swing.event.annotation.EventSubscriber;
 import org.drftpd.GlobalContext;
 import org.drftpd.event.ReloadEvent;
+import org.drftpd.sections.SectionInterface;
+import org.drftpd.vfs.DirectoryHandle;
+import org.drftpd.vfs.event.VirtualFileSystemInodeCreatedEvent;
 import org.joda.time.DateTimeZone;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author scitz0
@@ -45,6 +49,9 @@ public class TvMazeConfig {
 	private int _startDelay, _endDelay;
 	private boolean _bar_enabled, _bar_directory, _sRelease;
 
+	private TvMazeThread _tvmazeThread = new TvMazeThread();
+	private ConcurrentLinkedQueue<DirectoryHandle> _parseQueue = new ConcurrentLinkedQueue<DirectoryHandle>();
+
 	public static TvMazeConfig getInstance() {
 		return ourInstance;
 	}
@@ -53,6 +60,7 @@ public class TvMazeConfig {
 		// Subscribe to events
 		AnnotationProcessor.process(this);
 		loadConfig();
+		_tvmazeThread.start();
 	}
 
 	private void loadConfig() {
@@ -116,9 +124,7 @@ public class TvMazeConfig {
 		return _dtz;
 	}
 
-	public String getExclude() {
-		return _exclude;
-	}
+	public String getExclude() { return _exclude; }
 
 	public int getStartDelay() {
 		return _startDelay;
@@ -134,6 +140,45 @@ public class TvMazeConfig {
 
 	public boolean barAsDirectory() {
 		return _bar_directory;
+	}
+
+	public TvMazeThread getTvMazeThread() {return _tvmazeThread; }
+
+	public DirectoryHandle getDirToProcess() { return _parseQueue.poll(); }
+
+	public int getQueueSize() { return _parseQueue.size(); }
+
+	public void addDirToProcessQueue(DirectoryHandle dir) { _parseQueue.add(dir); }
+
+	/**
+	 * Method called whenever an inode is created.
+	 * Spawns a {@link TvMazeThread} if all criteria are met to not stall running thread
+	 * while getting the info from TvMaze.
+	 * Depends on {@link VirtualFileSystemInodeCreatedEvent} <code>type</code> property.
+	 * @param event
+	 */
+	@EventSubscriber
+	public void inodeCreated(VirtualFileSystemInodeCreatedEvent event) {
+		if (!event.getInode().isDirectory())
+			return;
+
+		DirectoryHandle dir = (DirectoryHandle)event.getInode();
+
+		if (!TvMazeUtils.isRelease(dir.getName())) {
+			return;
+		}
+
+		SectionInterface sec = GlobalContext.getGlobalContext().getSectionManager().lookup(dir);
+		if (!getRaceSections().contains(sec.getName().toLowerCase()))
+			return;
+
+		if (dir.getName().matches(getExclude()))
+			return;
+
+		logger.debug("Dir added to process queue for TvMaze data: " + dir.getPath());
+
+		// Add dir to process queue
+		addDirToProcessQueue(dir);
 	}
 
 	@EventSubscriber

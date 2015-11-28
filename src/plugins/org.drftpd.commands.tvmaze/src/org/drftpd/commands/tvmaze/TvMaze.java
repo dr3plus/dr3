@@ -24,8 +24,11 @@ import java.util.ResourceBundle;
 import java.io.FileNotFoundException;
 
 import org.apache.log4j.Logger;
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
 import org.drftpd.GlobalContext;
 import org.drftpd.commands.tvmaze.metadata.TvEpisode;
+import org.drftpd.event.UnloadPluginEvent;
 import org.drftpd.plugins.sitebot.SiteBot;
 import org.drftpd.sections.SectionInterface;
 import org.drftpd.usermanager.NoSuchUserException;
@@ -51,6 +54,9 @@ public class TvMaze extends CommandInterface {
 		super.initialize(method, pluginName, cManager);
 		_bundle = cManager.getResourceBundle();
 		_keyPrefix = this.getClass().getName()+".";
+		TvMazeConfig.getInstance();
+		// Subscribe to events
+		AnnotationProcessor.process(this);
 	}
 
 	public CommandResponse doSITE_TV(CommandRequest request) throws ImproperUsageException {
@@ -95,17 +101,12 @@ public class TvMaze extends CommandInterface {
 						addResponse(env, request, response, "tv.ep.season", verbose);
 					}
 				} else if (epList.size() == 1) {
-					TvEpisode evEP = epList.get(0);
-					env = TvMazeUtils.getEPEnv(tvmaze.getTvShow(), evEP);
+					TvEpisode tvEP = epList.get(0);
+					env = TvMazeUtils.getEPEnv(tvmaze.getTvShow(), tvEP);
 
 					if (TvMazeConfig.getInstance().searchRelease()) {
 						env.add("foundSD","No");
 						env.add("foundHD","No");
-
-						String season = String.format("%02d", evEP.getSeason());
-						String number = String.format("%02d", evEP.getNumber());
-						String searchpattern = "(?i).*" + tvmaze.getTvShow().getName().replaceAll("\\s", "\\.") +
-								"\\.(s"+season+"\\.?(e"+number+"|e\\d+-e"+number+")|"+evEP.getSeason()+"x"+number+")\\..*";
 
 						ArrayList<DirectoryHandle> results = new ArrayList<DirectoryHandle>();
 
@@ -113,12 +114,14 @@ public class TvMaze extends CommandInterface {
 							for (String section : TvMazeConfig.getInstance().getHDSections()) {
 								results.addAll(TvMazeUtils.findReleases(
 										GlobalContext.getGlobalContext().getSectionManager().getSection(section).getCurrentDirectory(),
-										request.getSession().getUserNull(request.getUser()), searchpattern));
+										request.getSession().getUserNull(request.getUser()),
+										tvmaze.getTvShow().getName(), tvEP.getSeason(), tvEP.getNumber()));
 							}
 							for (String section : TvMazeConfig.getInstance().getSDSections()) {
 								results.addAll(TvMazeUtils.findReleases(
 										GlobalContext.getGlobalContext().getSectionManager().getSection(section).getCurrentDirectory(),
-										request.getSession().getUserNull(request.getUser()), searchpattern));
+										request.getSession().getUserNull(request.getUser()),
+										tvmaze.getTvShow().getName(), tvEP.getSeason(), tvEP.getNumber()));
 							}
 							for (DirectoryHandle dir : results) {
 								SectionInterface sec = GlobalContext.getGlobalContext().getSectionManager().lookup(dir);
@@ -298,5 +301,18 @@ public class TvMaze extends CommandInterface {
 				dirsToCheck.add(dir);
 		}
 		return dirsToCheck;
+	}
+
+	public CommandResponse doSITE_TVQUEUE(CommandRequest request) throws ImproperUsageException {
+		ReplacerEnvironment env = new ReplacerEnvironment();
+		env.add("size", TvMazeConfig.getInstance().getQueueSize());
+		return new CommandResponse(200, request.getSession().jprintf(_bundle, _keyPrefix+"tv.queue", env, request.getUser()));
+	}
+
+	@EventSubscriber
+	@Override
+	public synchronized void onUnloadPluginEvent(UnloadPluginEvent event) {
+		super.onUnloadPluginEvent(event);
+		TvMazeConfig.getInstance().getTvMazeThread().interrupt();
 	}
 }

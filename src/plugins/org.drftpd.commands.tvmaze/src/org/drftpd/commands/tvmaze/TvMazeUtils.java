@@ -36,6 +36,7 @@ import org.drftpd.commands.tvmaze.event.TvMazeEvent;
 import org.drftpd.commands.tvmaze.metadata.TvEpisode;
 import org.drftpd.commands.tvmaze.metadata.TvMazeInfo;
 import org.drftpd.commands.tvmaze.vfs.TvMazeVFSData;
+import org.drftpd.dynamicdata.KeyNotFoundException;
 import org.drftpd.exceptions.NoAvailableSlaveException;
 import org.drftpd.exceptions.SlaveUnavailableException;
 import org.drftpd.plugins.sitebot.SiteBot;
@@ -46,6 +47,7 @@ import org.drftpd.vfs.VirtualFileSystem;
 import org.drftpd.vfs.index.AdvancedSearchParams;
 import org.drftpd.vfs.index.IndexEngineInterface;
 import org.drftpd.vfs.index.IndexException;
+import org.drftpd.vfs.index.lucene.extensions.tvmaze.TvMazeQueryParams;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
@@ -299,18 +301,15 @@ public class TvMazeUtils {
 
 	public static String filterTitle(String title) {
 		String newTitle = title.toLowerCase();
-		//remove the group name
-		if (newTitle.lastIndexOf("-") >= 0) {
-			newTitle = newTitle.substring(0, newTitle.lastIndexOf("-"));
-		}
 		//remove filtered words
 		for (String filter : TvMazeConfig.getInstance().getFilters()) {
 			newTitle = newTitle.replaceAll("\\b"+filter.toLowerCase()+"\\b","");
 		}
 		//remove seperators
 		for (String separator : _seperators) {
-			newTitle = newTitle.replaceAll("\\"+separator.toLowerCase()," ");
+			newTitle = newTitle.replaceAll("\\"+separator," ");
 		}
+		newTitle = newTitle.trim();
 		//remove extra spaces
 		newTitle = newTitle.replaceAll("\\s+","%20");
 		return newTitle;
@@ -356,13 +355,23 @@ public class TvMazeUtils {
 		return new String(cha);
 	}
 
-	public static ArrayList<DirectoryHandle> findReleases(DirectoryHandle sectionDir, User user, String regex) throws FileNotFoundException {
+	public static ArrayList<DirectoryHandle> findReleases(DirectoryHandle sectionDir, User user, String showName, int season, int number) throws FileNotFoundException {
 		IndexEngineInterface ie = GlobalContext.getGlobalContext().getIndexEngine();
 		Map<String,String> inodes;
 
 		AdvancedSearchParams params = new AdvancedSearchParams();
 
-		params.setRegex(regex);
+		TvMazeQueryParams queryParams;
+		try {
+			queryParams = params.getExtensionData(TvMazeQueryParams.TvMazeQUERYPARAMS);
+		} catch (KeyNotFoundException e) {
+			queryParams = new TvMazeQueryParams();
+			params.addExtensionData(TvMazeQueryParams.TvMazeQUERYPARAMS, queryParams);
+		}
+		queryParams.setName(showName);
+		queryParams.setSeason(season);
+		queryParams.setNumber(number);
+
 		params.setInodeType(AdvancedSearchParams.InodeType.DIRECTORY);
 		params.setSortField("lastmodified");
 		params.setSortOrder(true);
@@ -397,8 +406,6 @@ public class TvMazeUtils {
 	}
 
 	public static TvMazeInfo getTvMazeInfo(DirectoryHandle dir) {
-		if (dir.getName().matches(TvMazeConfig.getInstance().getExclude()))
-			return null;
 		TvMazeVFSData tvmazeData = new TvMazeVFSData(dir);
 		try {
 			return tvmazeData.getTvMazeInfo();

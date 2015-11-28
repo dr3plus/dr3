@@ -15,6 +15,7 @@ IRC announce on MKD/PRE event and tvmaze info dir in release dir is also availab
 		<import plugin-id="org.drftpd.plugins.sitebot" exported="true" />
         <import plugin-id="org.drftpd.commands.list" exported="true" />
         <import plugin-id="org.drftpd.commands.tvmaze.metadata" exported="true" />
+		<import plugin-id="org.drftpd.vfs.index.lucene.extensions.tvmaze" exported="true" />
 	</requires>
 	<runtime>
 		<library id="org.drftpd.commands.tvmaze" path="classes/" type="code">
@@ -64,6 +65,12 @@ IRC announce on MKD/PRE event and tvmaze info dir in release dir is also availab
 	</extension>
     <extension plugin-id="org.drftpd.commands.tvmaze" point-id="PreHook" id="doSITE_REMOVETVPerm">
 		<parameter id="ParentMethod" value="doSITE_REMOVETV" />
+		<parameter id="HookClass" value="org.drftpd.commands.prehook.permissions.PermissionPreHook" />
+		<parameter id="HookMethod" value="doPermissionCheck" />
+		<parameter id="Priority" value="1" />
+	</extension>
+	<extension plugin-id="org.drftpd.commands.tvmaze" point-id="PreHook" id="doSITE_TVQUEUEPerm">
+		<parameter id="ParentMethod" value="doSITE_TVQUEUE" />
 		<parameter id="HookClass" value="org.drftpd.commands.prehook.permissions.PermissionPreHook" />
 		<parameter id="HookMethod" value="doPermissionCheck" />
 		<parameter id="Priority" value="1" />

@@ -17,26 +17,38 @@
  */
 package org.drftpd.commands.tvmaze;
 
-import org.drftpd.commands.tvmaze.metadata.TvMazeInfo;
-import org.drftpd.sections.SectionInterface;
+import org.apache.log4j.Logger;
 import org.drftpd.vfs.DirectoryHandle;
 
 /**
  * @author scitz0
  */
 public class TvMazeThread extends Thread {
-	private DirectoryHandle _dir;
-	private SectionInterface _section;
 
-	public TvMazeThread(DirectoryHandle dir, SectionInterface section) {
+	private static final Logger logger = Logger.getLogger(TvMaze.class);
+
+	public TvMazeThread() {
 		setPriority(Thread.MIN_PRIORITY);
-		_dir = dir;
-		_section = section;
 	}
 
 	@Override
 	public void run() {
-		TvMazeInfo tvmazeInfo = TvMazeUtils.getTvMazeInfo(_dir);
-		TvMazeUtils.publishEvent(tvmazeInfo, _dir, _section);
+		while (true) {
+			try {
+				if (Thread.interrupted()) {
+					throw new InterruptedException();
+				}
+				// Process one item in queue
+				DirectoryHandle dir = TvMazeConfig.getInstance().getDirToProcess();
+				if (dir != null) {
+					logger.debug("Fetching TvMaze data for " + dir.getPath());
+					TvMazeUtils.getTvMazeInfo(dir);
+				}
+				Thread.sleep(TvMazeUtils.randomNumber());
+			} catch (InterruptedException ie) {
+				logger.info("TvMazeThread interrupted, thread closing");
+				break;
+			}
+		}
 	}
 }

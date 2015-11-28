@@ -64,14 +64,14 @@ public class TvMazeParser {
 					number = Integer.parseInt(m1.group(4));
 				}
 				// Remove season/episode from search string
-				newSearchString = newSearchString.substring(0,newSearchString.length()-m1.group(1).length()).trim();
+				newSearchString = newSearchString.substring(0,newSearchString.toLowerCase().indexOf(m1.group(1))).trim();
 			} else if (m2.find()) {
 				season = Integer.parseInt(m2.group(2));
 				if (m2.group(3) != null) {
 					number = Integer.parseInt(m2.group(3));
 				}
 				// Remove season/episode from search string
-				newSearchString = newSearchString.substring(0,newSearchString.length()-m2.group(1).length()).trim();
+				newSearchString = newSearchString.substring(0,newSearchString.toLowerCase().indexOf(m2.group(1))).trim();
 			}
 
 			newSearchString = TvMazeUtils.filterTitle(newSearchString);

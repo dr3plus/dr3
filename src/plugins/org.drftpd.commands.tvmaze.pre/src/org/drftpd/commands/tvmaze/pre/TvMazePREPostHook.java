@@ -24,7 +24,7 @@ import org.drftpd.commandmanager.PostHookInterface;
 import org.drftpd.commandmanager.StandardCommandManager;
 import org.drftpd.commands.pre.Pre;
 import org.drftpd.commands.tvmaze.TvMazeConfig;
-import org.drftpd.commands.tvmaze.TvMazeThread;
+import org.drftpd.commands.tvmaze.TvMazePrintThread;
 import org.drftpd.sections.SectionInterface;
 import org.drftpd.vfs.DirectoryHandle;
 
@@ -57,9 +57,9 @@ public class TvMazePREPostHook implements PostHookInterface {
 		if (preDir.getName().matches(TvMazeConfig.getInstance().getExclude()))
 			return;
 
-		// Spawn a TvMaze thread and exit.
-		// This so its not stalling MKD
-		TvMazeThread tvmaze = new TvMazeThread(preDir, sec);
-		tvmaze.start();
+		// TvMaze data collected in TvMazeConfig by listening on the VirtualFileSystemInodeCreatedEvent event
+		// Spawn a print thread that waits on the result to print the TvMaze info
+		TvMazePrintThread tvmazePrintThread = new TvMazePrintThread(preDir, sec);
+		tvmazePrintThread.start();
 	}
 }
