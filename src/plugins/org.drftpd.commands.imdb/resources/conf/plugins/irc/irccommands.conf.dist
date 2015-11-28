@@ -1,0 +1,32 @@
+imdb {
+plugin org.drftpd.commands.imdb
+class IMDB
+method doSITE_IMDB
+perms *
+help Search for a movie
+help.specific ${command} <nameofmovie>
+input all
+output source
+}
+
+createimdb {
+plugin org.drftpd.commands.imdb
+class IMDB
+method doSITE_CREATEIMDB
+perms =siteop
+help Create IMDB metadata for all movies below current dir
+help.specific ${command} [path]
+input all
+output source
+}
+
+removeimdb {
+plugin org.drftpd.commands.imdb
+class IMDB
+method doSITE_REMOVEIMDB
+perms =siteop
+help Remove IMDB metadata for all movies below current dir
+help.specific ${command} [path]
+input all
+output source
+}

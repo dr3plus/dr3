@@ -25,7 +25,7 @@ import org.drftpd.protocol.imdb.common.IMDBInfo;
 import org.drftpd.vfs.DirectoryHandle;
 import org.drftpd.vfs.InodeHandle;
 
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.text.WordUtils;
 
 /**
  * @author scitz0
