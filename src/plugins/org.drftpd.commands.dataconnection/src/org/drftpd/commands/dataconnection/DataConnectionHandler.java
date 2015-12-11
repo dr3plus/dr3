@@ -128,6 +128,10 @@ public class DataConnectionHandler extends CommandInterface {
 			if (cipherSuites != null && cipherSuites.length > 0) {
 				s2.setEnabledCipherSuites(GlobalContext.getConfig().getCipherSuites());
 			}
+			String[] sslProtocols = GlobalContext.getConfig().getSSLProtocols();
+			if (sslProtocols != null && sslProtocols.length > 0) {
+				s2.setEnabledProtocols(GlobalContext.getConfig().getSSLProtocols());
+			}
 			s2.startHandshake();
 			conn.authDone();
 		} catch (IOException e) {

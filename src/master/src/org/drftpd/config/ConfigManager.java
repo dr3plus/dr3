@@ -81,6 +81,7 @@ public class ConfigManager implements ConfigInterface {
 	private int _maxUsersExempt = 0;
 	
 	private String[] _cipherSuites = null;
+	private String[] _sslProtocols = null;
 	
 	/**
 	 * Reload all VFSPermHandlers and ConfigHandlers.
@@ -91,6 +92,7 @@ public class ConfigManager implements ConfigInterface {
 		loadConfigHandlers();
 		loadMainProperties();
 		parseCipherSuites();
+		parseSSLProtocols();
 		
 		initializeKeyedMap();
 		
@@ -180,6 +182,23 @@ public class ConfigManager implements ConfigInterface {
 			_cipherSuites = null;
 		} else {
 			_cipherSuites = cipherSuites.toArray(new String[cipherSuites.size()]);
+		}
+	}
+
+	private void parseSSLProtocols() {
+		ArrayList<String> sslProtocols = new ArrayList<String>();
+		for (int x = 1;; x++) {
+			String sslProtocol = _mainCfg.getProperty("protocol." + x);
+			if (sslProtocol != null) {
+				sslProtocols.add(sslProtocol);
+			} else {
+				break;
+			}
+		}
+		if (sslProtocols.size() == 0) {
+			_sslProtocols = null;
+		} else {
+			_sslProtocols = sslProtocols.toArray(new String[sslProtocols.size()]);
 		}
 	}
 	
@@ -400,6 +419,8 @@ public class ConfigManager implements ConfigInterface {
 	public String[] getCipherSuites() {
 		return _cipherSuites;
 	}
+
+	public String[] getSSLProtocols() { return _sslProtocols; }
 
 	public String getHideInStats() {
 		return hideInStats;

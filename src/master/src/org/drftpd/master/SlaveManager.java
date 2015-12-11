@@ -401,6 +401,9 @@ public class SlaveManager implements Runnable, TimeEventInterface {
 					if (GlobalContext.getConfig().getCipherSuites() != null) {
 						((SSLSocket) socket).setEnabledCipherSuites(GlobalContext.getConfig().getCipherSuites());
 					}
+					if (GlobalContext.getConfig().getSSLProtocols() != null) {
+						((SSLSocket) socket).setEnabledProtocols(GlobalContext.getConfig().getSSLProtocols());
+					}
 					((SSLSocket) socket).setUseClientMode(false);
 					int oldTimeout = ((SSLSocket) socket).getSoTimeout();
 					((SSLSocket) socket).setSoTimeout(15000);
@@ -486,7 +489,7 @@ public class SlaveManager implements Runnable, TimeEventInterface {
 	 * for a response and handles errors on each slave Use
 	 * RemoteSlave.simpleDelete(path) if you want to delete files
 	 * 
-	 * @param file
+	 * @param directory
 	 */
 	public void deleteOnAllSlaves(DirectoryHandle directory) {
 		HashMap<RemoteSlave, String> slaveMap = new HashMap<RemoteSlave, String>();
