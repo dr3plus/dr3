@@ -93,7 +93,6 @@ public class IMDBVFSDataNFO {
 						throw new IOException(e.getMessage());
 					}
 					if (info.getURL() != null) {
-						_dir.addPluginMetaData(IMDBInfo.IMDBINFO, info);
 						return info;
 					}
 				}

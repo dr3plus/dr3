@@ -28,18 +28,13 @@ public class IMDBEvent {
 	private boolean _imdbURL;
 	private DirectoryHandle _dir;
 	
-	public IMDBEvent(ReplacerEnvironment env, boolean imdbURL, DirectoryHandle dir) {
+	public IMDBEvent(ReplacerEnvironment env, DirectoryHandle dir) {
 		_env = env;
-		_imdbURL = imdbURL;
 		_dir = dir;
 	}
 
 	public ReplacerEnvironment getEnv() {
 		return _env;
-	}
-	
-	public boolean imdbURL() {
-		return _imdbURL;
 	}
 
 	public DirectoryHandle getDir() {

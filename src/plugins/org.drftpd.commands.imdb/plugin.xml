@@ -11,19 +11,23 @@ IRC announce on NFO upload and imdb info in directory metadata.</doc-text>
 	</attributes>
 	<requires>
         <import plugin-id="org.drftpd.protocol.imdb.master" exported="true" />
+		<import plugin-id="org.drftpd.vfs.index.lucene.extensions.imdb" exported="true" />
 		<import plugin-id="org.drftpd.plugins.sitebot" exported="true" />
 		<import plugin-id="org.drftpd.commandmanager" exported="true" />
-        <import plugin-id="org.drftpd.commands.dir" exported="true" />
 		<import plugin-id="org.drftpd.commands.dataconnection" exported="true" />
+        <import plugin-id="org.drftpd.commands.dir" exported="true" />
         <import plugin-id="org.drftpd.commands.list" exported="true" />
 	</requires>
 	<runtime>
 		<library id="org.drftpd.commands.imdb" path="classes/" type="code">
 			<export prefix="*" />
 		</library>
-        <library id="commons-lang3" path="../../../lib/commons-lang3-3.4.jar" type="code">
-            <export prefix="*" />
-        </library>
+		<library id="httpclient" path="../../../lib/httpclient-4.5.1.jar" type="code">
+			<export prefix="*" />
+		</library>
+		<library id="httpcore" path="../../../lib/httpcore-4.4.3.jar" type="code">
+			<export prefix="*" />
+		</library>
 	</runtime>
 	<extension-point id="PreHook" parent-plugin-id="org.drftpd.commandmanager" parent-point-id="CommandPreHook" />
 	<extension-point id="PostHook" parent-plugin-id="org.drftpd.commandmanager" parent-point-id="CommandPostHook" />
@@ -43,6 +47,12 @@ IRC announce on NFO upload and imdb info in directory metadata.</doc-text>
 	</extension>
     <extension plugin-id="org.drftpd.commands.imdb" point-id="PreHook" id="doSITE_REMOVEIMDBPerm">
 		<parameter id="ParentMethod" value="doSITE_REMOVEIMDB" />
+		<parameter id="HookClass" value="org.drftpd.commands.prehook.permissions.PermissionPreHook" />
+		<parameter id="HookMethod" value="doPermissionCheck" />
+		<parameter id="Priority" value="1" />
+	</extension>
+	<extension plugin-id="org.drftpd.commands.imdb" point-id="PreHook" id="doSITE_IMDBQUEUEPerm">
+		<parameter id="ParentMethod" value="doSITE_IMDBQUEUE" />
 		<parameter id="HookClass" value="org.drftpd.commands.prehook.permissions.PermissionPreHook" />
 		<parameter id="HookMethod" value="doPermissionCheck" />
 		<parameter id="Priority" value="1" />

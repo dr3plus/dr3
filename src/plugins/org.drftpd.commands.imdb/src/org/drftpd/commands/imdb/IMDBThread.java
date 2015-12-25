@@ -17,27 +17,38 @@
  */
 package org.drftpd.commands.imdb;
 
-import org.drftpd.protocol.imdb.common.IMDBInfo;
-import org.drftpd.sections.SectionInterface;
+import org.apache.log4j.Logger;
 import org.drftpd.vfs.DirectoryHandle;
 
 /**
  * @author scitz0
  */
 public class IMDBThread extends Thread {
-	private DirectoryHandle _dir;
-	private SectionInterface _section;
 
-	public IMDBThread(DirectoryHandle workingDir, SectionInterface section) {
+	private static final Logger logger = Logger.getLogger(IMDB.class);
+
+	public IMDBThread() {
 		setPriority(Thread.MIN_PRIORITY);
-		_dir = workingDir;
-		_section = section;
 	}
 
 	@Override
 	public void run() {
-		IMDBInfo imdbInfo = IMDBUtils.getIMDBInfo(_dir, true);
-		IMDBUtils.addMetadata(imdbInfo, _dir);
-		IMDBUtils.publishEvent(imdbInfo, _dir, _section);
+		while (true) {
+			try {
+				if (Thread.interrupted()) {
+					throw new InterruptedException();
+				}
+				// Process one item in queue
+				DirectoryHandle dir = IMDBConfig.getInstance().getDirToProcess();
+				if (dir != null) {
+					logger.debug("Fetching IMDB data for " + dir.getPath());
+					IMDBUtils.getIMDBInfo(dir, true);
+				}
+				Thread.sleep(IMDBUtils.randomNumber());
+			} catch (InterruptedException ie) {
+				logger.info("IMDBThread interrupted, thread closing");
+				break;
+			}
+		}
 	}
 }

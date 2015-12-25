@@ -40,7 +40,7 @@ public class IMDBPostHook implements PostHookInterface {
 			// STOR Failed, skip
 			return;
 		}
-		
+
 		String fileName = request.getArgument();
 		if (!fileName.endsWith(".nfo") || fileName.endsWith("imdb.nfo"))
 			return;
@@ -48,12 +48,12 @@ public class IMDBPostHook implements PostHookInterface {
 		DirectoryHandle workingDir = request.getCurrentDirectory();
 
 		SectionInterface sec = GlobalContext.getGlobalContext().getSectionManager().lookup(workingDir);
-		if (!IMDBConfig.getInstance().getSections().contains(sec.getName().toLowerCase()))
+		if (!IMDBConfig.getInstance().getRaceSections().contains(sec.getName()))
 			return;
 
-		// Spawn an IMDB thread and exit.
+		// Spawn an IMDBPrintThread and exit.
 		// This so its not stalling nfo upload
-		IMDBThread imdb = new IMDBThread(workingDir, sec);
+		IMDBPrintThread imdb = new IMDBPrintThread(workingDir, sec);
 		imdb.start();
 	}
 
@@ -63,8 +63,8 @@ public class IMDBPostHook implements PostHookInterface {
 			return;
 		}
 		String deleFileName;
-		deleFileName = request.getArgument();
-		if (deleFileName.toLowerCase().endsWith(".nfo")) {
+		deleFileName = request.getArgument().toLowerCase();
+		if (deleFileName.endsWith(".nfo") && !deleFileName.endsWith("imdb.nfo")) {
 			try {
 				request.getCurrentDirectory().removePluginMetaData(IMDBInfo.IMDBINFO);
 			} catch(FileNotFoundException e) {

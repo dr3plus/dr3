@@ -17,13 +17,6 @@
  */
 package org.drftpd.commands.imdb;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.text.Normalizer;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -73,31 +66,9 @@ public class IMDBParser {
 		_searchString = searchString;
 		try {
             String urlString = _searchUrl + searchString;
-            URL url = new URL(urlString);
-            URLConnection urlConn = url.openConnection();
-            urlConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.0.4) Gecko/2008102920 Firefox/3.0.4");
-            
-            if (!(urlConn.getContent() instanceof InputStream)) {
-                _foundMovie = false;
-				return;
-			}
-            
-            String data = "";
-            BufferedReader in = null;
-            String line;
-            try {
-				in = new BufferedReader(new InputStreamReader(urlConn
-						.getInputStream()));
-				while ((line = in.readLine()) != null) {
-					data += line + "\n";
-				}
-			} finally {
-				if (in != null) {
-					in.close();
-				}
-			}
-            
-            
+
+			String data = IMDBUtils.retrieveHttpAsString(urlString);
+
             if (data.indexOf("<b>No Matches.</b>") > 0) {
                 _foundMovie = false;
 				return;
@@ -113,11 +84,7 @@ public class IMDBParser {
                         _url = _baseUrl + _url;
                 }
             }
-        } catch (MalformedURLException e) {
-            logger.error("",e);
-            _foundMovie = false;
-			return;
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("",e);
             _foundMovie = false;
 			return;
@@ -137,39 +104,22 @@ public class IMDBParser {
 	private boolean getInfo() {
 		try {
 			_url = _url.trim();
-			URL url;
+			String url;
 			if (_url.endsWith("/")) {
 				if (_url.endsWith("/reference/")) {
-					url = new URL(_url);
+					url = _url;
 				} else {
-					url = new URL(_url+"reference");
+					url = _url+"reference";
 				}
 			} else {
 				if (_url.endsWith("/reference")) {
-					url = new URL(_url);
+					url = _url;
 				} else {
-					url = new URL(_url+"/reference");
+					url = _url+"/reference";
 				}
 			}
-            URLConnection urlConn = url.openConnection();
-            urlConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.0.4) Gecko/2008102920 Firefox/3.0.4");
-            if (!(urlConn.getContent() instanceof InputStream)) {
-				return false;
-			}
-			String data = "";
-			BufferedReader in = null;
-            String line;
-            try {
-				in = new BufferedReader(new InputStreamReader(urlConn
-						.getInputStream()));
 
-				while ((line = in.readLine()) != null)
-					data += line + "\n";
-			} finally {
-				if (in != null) {
-					in.close();
-				}
-			}
+			String data = IMDBUtils.retrieveHttpAsString(url);
 
 			_title = parseData(data, "<div id=\"tn15title\">", "<span>");
 			_genre = parseData(data, "<h5>Genre:</h5>", "</div>").replaceAll("See more","").trim().replaceAll("\\s+","");
@@ -194,48 +144,25 @@ public class IMDBParser {
 
 			_limited = "";
 			try {
-				if (_url.contains("reference")) {
-					url = new URL(_url.replace("reference","business"));
-				} else {
-					url = _url.endsWith("/") ? new URL(_url+"business") : new URL(_url+"/business");
-				}
-	            urlConn = url.openConnection();
-                urlConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.0.4) Gecko/2008102920 Firefox/3.0.4");
-	            if (urlConn.getContent() instanceof InputStream) {
-		            try {
-						in = new BufferedReader(new InputStreamReader(urlConn
-								.getInputStream()));
-						while ((line = in.readLine()) != null)
-							data = data + line + "\n";
-					} finally {
-						if (in != null) {
-							in.close();
-						}
-					}
-					String screens = parseData(data, "<h5>Opening Weekend</h5>", "<br/>");
-					if (!screens.equals("N|A") && screens.contains(" Screens)") && screens.lastIndexOf(") (") >= 0) {
-						int start = screens.lastIndexOf(") (")+3;
-						int end = screens.indexOf(" Screens)");
-						if (start < end) {
-							screens = screens.substring(start,end).replaceAll("\\D","").trim();
-							if (!screens.isEmpty()) {
-								_screens = Integer.valueOf(screens);
-								if (_screens < 600) {
-									_limited = " (Limited)";
-								}
+				data = IMDBUtils.retrieveHttpAsString(url);
+				String screens = parseData(data, "<h5>Opening Weekend</h5>", "<br/>");
+				if (!screens.equals("N|A") && screens.contains(" Screens)") && screens.lastIndexOf(") (") >= 0) {
+					int start = screens.lastIndexOf(") (") + 3;
+					int end = screens.indexOf(" Screens)");
+					if (start < end) {
+						screens = screens.substring(start, end).replaceAll("\\D", "").trim();
+						if (!screens.isEmpty()) {
+							_screens = Integer.valueOf(screens);
+							if (_screens < 600) {
+								_limited = " (Limited)";
 							}
 						}
 					}
 				}
-			} catch (MalformedURLException e) {
-	            logger.warn("", e);
-	        } catch (IOException e) {
+	        } catch (Exception e) {
 	            logger.warn("", e);
 	        }
-        } catch (MalformedURLException e) {
-            logger.error("",e);
-			return false;
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("",e);
 			return false;
         }
@@ -248,11 +175,11 @@ public class IMDBParser {
 		env.add("director", getDirector());
 		env.add("genre", getGenre());
 		env.add("plot", getPlot());
-		env.add("rating", getRating() != null ? getRating()/10+"."+getRating()%10 : "-");
-		env.add("votes", getVotes() != null ? getVotes() : "-");
-		env.add("year", getYear() != null ? getYear() : "-");
+		env.add("rating", getRating() != null ? getRating()/10+"."+getRating()%10 : "0");
+		env.add("votes", getVotes() != null ? getVotes() : "0");
+		env.add("year", getYear() != null ? getYear() : "9999");
 		env.add("url", getURL());
-		env.add("screens", getScreens() != null ? getScreens() : "-");
+		env.add("screens", getScreens() != null ? getScreens() : "0");
 		env.add("limited", getLimited());
 		env.add("searchstr", _searchString != null ? _searchString : "");
 		return env;

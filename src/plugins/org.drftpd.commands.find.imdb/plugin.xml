@@ -17,6 +17,10 @@
 	</runtime>
 
 	<!-- Options -->
+	<extension plugin-id="org.drftpd.commands.find" point-id="Option" id="IMDBTitleOption">
+		<parameter id="ClassName" value="org.drftpd.commands.find.imdb.IMDBOption"/>
+		<parameter id="OptionName" value="IMDBTitle"/>
+	</extension>
 	<extension plugin-id="org.drftpd.commands.find" point-id="Option" id="IMDBDirectorOption">
 		<parameter id="ClassName" value="org.drftpd.commands.find.imdb.IMDBOption"/>
 		<parameter id="OptionName" value="IMDBDirector"/>

@@ -63,10 +63,7 @@ public class IMDBAnnouncer extends AbstractAnnouncer {
 		AnnounceWriter writer = _config.getPathWriter("imdb", event.getDir());
 		// Check we got a writer back, if it is null do nothing and ignore the event
 		if (writer != null) {
-			if (event.imdbURL())
-				sayOutput(ReplacerUtils.jprintf(_keyPrefix+".imdb.announce", event.getEnv(), _bundle), writer);
-			else	
-				sayOutput(ReplacerUtils.jprintf(_keyPrefix+".simple.announce", event.getEnv(), _bundle), writer);
+			sayOutput(ReplacerUtils.jprintf(_keyPrefix+".imdb.announce", event.getEnv(), _bundle), writer);
 		}
 	}
 }

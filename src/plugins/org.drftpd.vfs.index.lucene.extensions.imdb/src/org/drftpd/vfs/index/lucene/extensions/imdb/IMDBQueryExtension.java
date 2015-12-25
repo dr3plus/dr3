@@ -33,6 +33,7 @@ import org.drftpd.vfs.index.lucene.extensions.QueryTermExtensionInterface;
  */
 public class IMDBQueryExtension implements QueryTermExtensionInterface {
 
+	private static final Term TERM_TITLE = new Term("imdbtitle", "");
 	private static final Term TERM_DIRECTOR = new Term("imdbdirector", "");
 	private static final Term TERM_GENRE = new Term("imdbgenre", "");
 	
@@ -40,6 +41,10 @@ public class IMDBQueryExtension implements QueryTermExtensionInterface {
 	public void addQueryTerms(BooleanQuery query, AdvancedSearchParams params) {
 		try {
 			IMDBQueryParams queryParams = params.getExtensionData(IMDBQueryParams.IMDBQUERYPARAMS);
+			if (queryParams.getTitle() != null) {
+				Query titleQuery = LuceneUtils.analyze("imdbtitle", TERM_TITLE, queryParams.getTitle());
+				query.add(titleQuery, Occur.MUST);
+			}
 			if (queryParams.getDirector() != null) {
 				Query directorQuery = LuceneUtils.analyze("imdbdirector", TERM_DIRECTOR, queryParams.getDirector());
 				query.add(directorQuery, Occur.MUST);

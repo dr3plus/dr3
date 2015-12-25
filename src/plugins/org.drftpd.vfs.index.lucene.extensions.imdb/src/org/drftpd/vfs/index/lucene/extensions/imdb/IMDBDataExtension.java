@@ -31,6 +31,7 @@ import org.drftpd.vfs.index.lucene.extensions.IndexDataExtensionInterface;
  */
 public class IMDBDataExtension implements IndexDataExtensionInterface {
 
+	private static final Field FIELD_TITLE = new Field("imdbtitle", "", Field.Store.YES, Field.Index.ANALYZED);
 	private static final Field FIELD_DIRECTOR = new Field("imdbdirector", "", Field.Store.YES, Field.Index.ANALYZED);
 	private static final Field FIELD_GENRE = new Field("imdbgenre", "", Field.Store.YES, Field.Index.ANALYZED);
 	private static final NumericField FIELD_VOTES = new NumericField("imdbvotes", Field.Store.YES, Boolean.TRUE);
@@ -40,6 +41,7 @@ public class IMDBDataExtension implements IndexDataExtensionInterface {
 	
 	@Override
 	public void initializeFields(Document doc) {
+		doc.add(FIELD_TITLE);
 		doc.add(FIELD_DIRECTOR);
 		doc.add(FIELD_GENRE);
 		doc.add(FIELD_VOTES);
@@ -57,6 +59,7 @@ public class IMDBDataExtension implements IndexDataExtensionInterface {
 			// Fields will be cleared below
 		}
 		if (imdbInfo == null || !imdbInfo.getMovieFound()) {
+			FIELD_TITLE.setValue("");
 			FIELD_DIRECTOR.setValue("");
 			FIELD_GENRE.setValue("");
 			FIELD_VOTES.setIntValue(-1);
@@ -64,6 +67,7 @@ public class IMDBDataExtension implements IndexDataExtensionInterface {
 			FIELD_YEAR.setIntValue(-1);
 			FIELD_SCREENS.setIntValue(-1);
 		} else {
+			FIELD_TITLE.setValue(imdbInfo.getTitle());
 			FIELD_DIRECTOR.setValue(imdbInfo.getDirector());
 			FIELD_GENRE.setValue(imdbInfo.getGenre());
 			FIELD_VOTES.setIntValue(imdbInfo.getVotes() != null ? imdbInfo.getVotes() : -1);

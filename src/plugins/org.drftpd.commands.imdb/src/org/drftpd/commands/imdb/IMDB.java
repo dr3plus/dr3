@@ -18,14 +18,18 @@
 package org.drftpd.commands.imdb;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import org.bushe.swing.event.annotation.AnnotationProcessor;
+import org.bushe.swing.event.annotation.EventSubscriber;
 import org.drftpd.commandmanager.CommandInterface;
 import org.drftpd.commandmanager.CommandRequest;
 import org.drftpd.commandmanager.CommandResponse;
 import org.drftpd.commandmanager.ImproperUsageException;
 import org.drftpd.commandmanager.StandardCommandManager;
+import org.drftpd.event.UnloadPluginEvent;
 import org.drftpd.protocol.imdb.common.IMDBInfo;
 import org.drftpd.sections.SectionInterface;
 import org.drftpd.usermanager.User;
@@ -52,6 +56,9 @@ public class IMDB extends CommandInterface {
 		super.initialize(method, pluginName, cManager);
 		_bundle = cManager.getResourceBundle();
 		_keyPrefix = this.getClass().getName()+".";
+		IMDBConfig.getInstance();
+		// Subscribe to events
+		AnnotationProcessor.process(this);
 	}
 
 	public CommandResponse doSITE_IMDB(CommandRequest request) throws ImproperUsageException {
@@ -60,18 +67,77 @@ public class IMDB extends CommandInterface {
 		}
 
 		String searchstring = request.getArgument().trim();
+
+		boolean verbose = false;
+		if (searchstring.toLowerCase().startsWith("-v")) {
+			verbose = true;
+			searchstring = searchstring.substring(2).trim();
+		}
+
 		searchstring = IMDBUtils.filterTitle(searchstring);
 
 		IMDBParser imdb = new IMDBParser();
 		imdb.doSEARCH(searchstring);
 		
 		CommandResponse response = StandardCommandManager.genericResponse("RESPONSE_200_COMMAND_OK");
+		ReplacerEnvironment env = imdb.getEnv();
 		if (imdb.foundMovie()) {
-			response.addComment(request.getSession().jprintf(_bundle, _keyPrefix+"announce", imdb.getEnv(), request.getUser()));
+			if (IMDBConfig.getInstance().searchRelease()) {
+				env.add("foundSD","No");
+				env.add("foundHD","No");
+
+				ArrayList<DirectoryHandle> results = new ArrayList<DirectoryHandle>();
+
+				try {
+					for (String section : IMDBConfig.getInstance().getHDSections()) {
+						results.addAll(IMDBUtils.findReleases(
+								GlobalContext.getGlobalContext().getSectionManager().getSection(section).getCurrentDirectory(),
+								request.getSession().getUserNull(request.getUser()),
+								imdb.getTitle(), imdb.getYear()));
+					}
+					for (String section : IMDBConfig.getInstance().getSDSections()) {
+						results.addAll(IMDBUtils.findReleases(
+								GlobalContext.getGlobalContext().getSectionManager().getSection(section).getCurrentDirectory(),
+								request.getSession().getUserNull(request.getUser()),
+								imdb.getTitle(), imdb.getYear()));
+					}
+					for (DirectoryHandle dir : results) {
+						SectionInterface sec = GlobalContext.getGlobalContext().getSectionManager().lookup(dir);
+						if (IMDBConfig.getInstance().getHDSections().contains(sec.getName())) {
+							env.add("foundHD","Yes");
+						}
+						if (IMDBConfig.getInstance().getSDSections().contains(sec.getName())) {
+							env.add("foundSD","Yes");
+						}
+					}
+					env.add("results", results.size());
+					addTagToEnvironment(env, request, "release", "announce.release", verbose);
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+			addResponse(env, request, response, "announce", verbose);
+
 		} else {
-			response.addComment(request.getSession().jprintf(_bundle, _keyPrefix+"notfound", imdb.getEnv(), request.getUser()));
+			response.addComment(request.getSession().jprintf(_bundle, _keyPrefix+"notfound", env, request.getUser()));
 		}	
 		return response;
+	}
+
+	private void addTagToEnvironment(ReplacerEnvironment env, CommandRequest request, String tag, String key, boolean verbose) {
+		if (verbose) {
+			env.add(tag, request.getSession().jprintf(_bundle, _keyPrefix+key+".verbose", env, request.getUser()));
+		} else {
+			env.add(tag, request.getSession().jprintf(_bundle, _keyPrefix+key, env, request.getUser()));
+		}
+	}
+
+	private void addResponse(ReplacerEnvironment env, CommandRequest request, CommandResponse response, String key, boolean verbose) {
+		if (verbose) {
+			response.addComment(request.getSession().jprintf(_bundle, _keyPrefix+key+".verbose", env, request.getUser()));
+		} else {
+			response.addComment(request.getSession().jprintf(_bundle, _keyPrefix+key, env, request.getUser()));
+		}
 	}
 
 	public CommandResponse doSITE_CREATEIMDB(CommandRequest request) throws ImproperUsageException {
@@ -118,13 +184,12 @@ public class IMDB extends CommandInterface {
 				if (!nfo.isHidden(user)) {
 					// Check if valid section
 					SectionInterface sec = GlobalContext.getGlobalContext().getSectionManager().lookup(nfo.getParent());
-					if (IMDBConfig.getInstance().getSections().contains(sec.getName().toLowerCase())) {
+					if (IMDBConfig.getInstance().getRaceSections().contains(sec.getName())) {
 						DirectoryHandle parent = nfo.getParent();
 						IMDBInfo imdbInfo = IMDBUtils.getIMDBInfo(parent, false);
 						if (imdbInfo == null || imdbInfo.getMovieFound()) {
 							continue;
 						}
-						IMDBUtils.populateIMDBInfo(imdbInfo);
 						IMDBUtils.addMetadata(imdbInfo, parent);
 						env.add("dirname", parent.getName());
 						env.add("dirpath", parent.getPath());
@@ -218,5 +283,18 @@ public class IMDB extends CommandInterface {
 		} else {
 			return new CommandResponse(200, request.getSession().jprintf(_bundle, _keyPrefix+"removeimdb.complete", env, request.getUser()));
 		}
+	}
+
+	public CommandResponse doSITE_IMDBQUEUE(CommandRequest request) throws ImproperUsageException {
+		ReplacerEnvironment env = new ReplacerEnvironment();
+		env.add("size", IMDBConfig.getInstance().getQueueSize());
+		return new CommandResponse(200, request.getSession().jprintf(_bundle, _keyPrefix+"imdb.queue", env, request.getUser()));
+	}
+
+	@EventSubscriber
+	@Override
+	public synchronized void onUnloadPluginEvent(UnloadPluginEvent event) {
+		super.onUnloadPluginEvent(event);
+		IMDBConfig.getInstance().getIMDBThread().interrupt();
 	}
 }

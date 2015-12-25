@@ -17,32 +17,48 @@
  */
 package org.drftpd.commands.imdb;
 
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.drftpd.GlobalContext;
 import org.drftpd.commands.imdb.event.IMDBEvent;
 import org.drftpd.commands.imdb.vfs.IMDBVFSDataNFO;
+import org.drftpd.dynamicdata.KeyNotFoundException;
 import org.drftpd.exceptions.NoAvailableSlaveException;
 import org.drftpd.exceptions.SlaveUnavailableException;
 import org.drftpd.plugins.sitebot.SiteBot;
 import org.drftpd.protocol.imdb.common.IMDBInfo;
 import org.drftpd.sections.SectionInterface;
+import org.drftpd.usermanager.User;
 import org.drftpd.vfs.DirectoryHandle;
+import org.drftpd.vfs.VirtualFileSystem;
 import org.drftpd.vfs.index.AdvancedSearchParams;
 import org.drftpd.vfs.index.IndexEngineInterface;
 import org.drftpd.vfs.index.IndexException;
+import org.drftpd.vfs.index.lucene.extensions.imdb.IMDBQueryParams;
 import org.tanesha.replacer.ReplacerEnvironment;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
-import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author scitz0
  */
 public class IMDBUtils {
 	private static final Logger logger = Logger.getLogger(IMDBUtils.class);
+
+	private static final String[] _seperators = {".","-","_"};
 
 	public static void setInfo(IMDBInfo imdbInfo, IMDBParser imdbParser) {
 		imdbInfo.setTitle(imdbParser.getTitle());
@@ -84,7 +100,7 @@ public class IMDBUtils {
 		try {
 			imdbInfo = imdbData.getIMDBInfo();
 			if (parse) {
-				populateIMDBInfo(imdbInfo);
+				addMetadata(imdbInfo, dir);
 			}
 			return imdbInfo;
 		} catch (FileNotFoundException e) {
@@ -104,13 +120,12 @@ public class IMDBUtils {
 		if (imdbInfo == null) {
 			return;
 		}
-		populateIMDBInfo(imdbInfo);
 		if (imdbInfo.getMovieFound()) {
 			//Announce
 			ReplacerEnvironment env = getEnv(imdbInfo);
 			env.add("release", dir.getName());
 			env.add("section", section.getName());
-			GlobalContext.getEventService().publishAsync(new IMDBEvent(env, true, dir));
+			GlobalContext.getEventService().publishAsync(new IMDBEvent(env, dir));
 		}
 	}
 
@@ -138,23 +153,17 @@ public class IMDBUtils {
 
 	public static String filterTitle(String title) {
 		String newTitle = title.toLowerCase();
-		//remove the group name
-		if (newTitle.lastIndexOf("-") >= 0) {
-			newTitle = newTitle.substring(0, newTitle.lastIndexOf("-"));
+		//remove filtered words
+		for (String filter : IMDBConfig.getInstance().getFilters()) {
+			newTitle = newTitle.replaceAll("\\b"+filter.toLowerCase()+"\\b","");
 		}
 		//remove seperators
-		newTitle = newTitle.replaceAll("[._-]"," ");
-		//remove filtered words
-		StringTokenizer st = new StringTokenizer(IMDBConfig.getInstance().getFilter());
-		while (st.hasMoreTokens()) {
-			newTitle = newTitle.replaceAll("\\b"+st.nextToken().toLowerCase()+"\\b","");
+		for (String separator : _seperators) {
+			newTitle = newTitle.replaceAll("\\"+separator," ");
 		}
+		newTitle = newTitle.trim();
 		//remove extra spaces
-		while (newTitle.indexOf("  ") > 0) {
-			newTitle = newTitle.replaceAll("  "," ");
-		}
-		//convert spaces to +
-		newTitle = newTitle.trim().replaceAll("\\s","+");
+		newTitle = newTitle.replaceAll("\\s+","%20");
 		return newTitle;
 	}
 
@@ -167,6 +176,87 @@ public class IMDBUtils {
 		params.setLimit(0);
 
 		return ie.advancedFind(dir, params);
+	}
+
+	public static boolean isRelease(String dirName) {
+		Pattern p = Pattern.compile("(\\w+\\.){3,}\\w+-\\w+");
+		Matcher m = p.matcher(dirName);
+		return m.find();
+	}
+
+	public static String retrieveHttpAsString(String url) throws Exception {
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setSocketTimeout(5000)
+				.setConnectTimeout(5000)
+				.setConnectionRequestTimeout(5000)
+				.setCookieSpec(CookieSpecs.IGNORE_COOKIES)
+				.build();
+		CloseableHttpClient httpclient = HttpClients.custom()
+				.setDefaultRequestConfig(requestConfig)
+				.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36")
+				.build();
+
+		HttpGet httpGet = new HttpGet(url);
+		CloseableHttpResponse response = null;
+		try {
+			response = httpclient.execute(httpGet);
+			final int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode != HttpStatus.SC_OK) {
+				throw new Exception("Error " + statusCode + " for URL " + url);
+			}
+			return EntityUtils.toString(response.getEntity());
+		} catch (IOException e) {
+			throw new Exception("Error for URL " + url, e);
+		} finally {
+			if (response != null) {
+				response.close();
+			}
+			httpclient.close();
+		}
+	}
+
+	public static ArrayList<DirectoryHandle> findReleases(DirectoryHandle sectionDir, User user, String title, int year) throws FileNotFoundException {
+		IndexEngineInterface ie = GlobalContext.getGlobalContext().getIndexEngine();
+		Map<String,String> inodes;
+
+		AdvancedSearchParams params = new AdvancedSearchParams();
+
+		IMDBQueryParams queryParams;
+		try {
+			queryParams = params.getExtensionData(IMDBQueryParams.IMDBQUERYPARAMS);
+		} catch (KeyNotFoundException e) {
+			queryParams = new IMDBQueryParams();
+			params.addExtensionData(IMDBQueryParams.IMDBQUERYPARAMS, queryParams);
+		}
+		queryParams.setTitle(title);
+		queryParams.setMinYear(year);
+		queryParams.setMaxYear(year);
+
+		params.setInodeType(AdvancedSearchParams.InodeType.DIRECTORY);
+		params.setSortField("lastmodified");
+		params.setSortOrder(true);
+
+		try {
+			inodes = ie.advancedFind(sectionDir, params);
+		} catch (IndexException e) {
+			throw new FileNotFoundException("Index Exception: "+e.getMessage());
+		}
+
+		ArrayList<DirectoryHandle> releases = new ArrayList<DirectoryHandle>();
+
+		for (Map.Entry<String,String> item : inodes.entrySet()) {
+			try {
+				DirectoryHandle inode = new DirectoryHandle(VirtualFileSystem.fixPath(item.getKey()));
+				if (!inode.isHidden(user)) {
+					releases.add(inode);
+				}
+			} catch (FileNotFoundException e) {
+				// This is ok, could be multiple nukes fired and
+				// that is has not yet been reflected in index due to async event.
+			}
+		}
+
+		return releases;
 	}
 
 }

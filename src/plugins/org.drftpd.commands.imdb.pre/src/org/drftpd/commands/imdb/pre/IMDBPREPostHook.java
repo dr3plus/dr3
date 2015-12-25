@@ -23,7 +23,7 @@ import org.drftpd.commandmanager.CommandResponse;
 import org.drftpd.commandmanager.PostHookInterface;
 import org.drftpd.commandmanager.StandardCommandManager;
 import org.drftpd.commands.imdb.IMDBConfig;
-import org.drftpd.commands.imdb.IMDBThread;
+import org.drftpd.commands.imdb.IMDBPrintThread;
 import org.drftpd.commands.pre.Pre;
 import org.drftpd.sections.SectionInterface;
 import org.drftpd.vfs.DirectoryHandle;
@@ -50,12 +50,15 @@ public class IMDBPREPostHook implements PostHookInterface {
 		}
 
 		SectionInterface sec = GlobalContext.getGlobalContext().getSectionManager().lookup(preDir);
-		if (!IMDBConfig.getInstance().getSections().contains(sec.getName().toLowerCase()))
+		if (!IMDBConfig.getInstance().getRaceSections().contains(sec.getName().toLowerCase()))
+			return;
+
+		if (preDir.getName().matches(IMDBConfig.getInstance().getExclude()))
 			return;
 
 		// Spawn an IMDB thread and exit.
 		// This so its not stalling nfo upload
-		IMDBThread imdb = new IMDBThread(preDir, sec);
-		imdb.start();
+		IMDBPrintThread imdbPrintThread = new IMDBPrintThread(preDir, sec);
+		imdbPrintThread.start();
 	}
 }

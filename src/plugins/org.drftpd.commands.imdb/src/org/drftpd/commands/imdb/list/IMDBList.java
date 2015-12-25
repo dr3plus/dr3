@@ -46,14 +46,14 @@ public class IMDBList implements AddListElementsInterface {
 				if (imdbInfo.getMovieFound()) {
 					ReplacerEnvironment env = new ReplacerEnvironment();
 					env.add("title", imdbInfo.getTitle());
-					env.add("year", imdbInfo.getYear() != null ? imdbInfo.getYear() : "-");
+					env.add("year", imdbInfo.getYear() != null ? imdbInfo.getYear() : "9999");
 					env.add("director", imdbInfo.getDirector());
 					env.add("genre", imdbInfo.getGenre());
 					env.add("plot", imdbInfo.getPlot());
-					env.add("rating", imdbInfo.getRating() != null ? imdbInfo.getRating()/10+"."+imdbInfo.getRating()%10 : "-");
-					env.add("votes", imdbInfo.getVotes() != null ? imdbInfo.getVotes() : "-");
+					env.add("rating", imdbInfo.getRating() != null ? imdbInfo.getRating()/10+"."+imdbInfo.getRating()%10 : "0");
+					env.add("votes", imdbInfo.getVotes() != null ? imdbInfo.getVotes() : "0");
 					env.add("url", imdbInfo.getURL());
-					env.add("screens", imdbInfo.getScreens() != null ? imdbInfo.getScreens() : "-");
+					env.add("screens", imdbInfo.getScreens() != null ? imdbInfo.getScreens() : "0");
 					env.add("limited", imdbInfo.getLimited());
 					String imdbDirName = container.getSession().jprintf(bundle,
 							keyPrefix+"imdb.dir", env, container.getUser());

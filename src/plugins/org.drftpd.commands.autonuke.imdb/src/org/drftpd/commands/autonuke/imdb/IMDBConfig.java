@@ -35,19 +35,15 @@ public class IMDBConfig extends Config {
 		try {
 			IMDBInfo imdbInfo = dir.getPluginMetaData(IMDBInfo.IMDBINFO);
 			if (_field.equalsIgnoreCase("Title")) {
-				return _operator.equals("!") ? imdbInfo.getTitle().matches(_value) :
-						!imdbInfo.getTitle().matches(_value);
+				return _operator.equals("!") == imdbInfo.getTitle().matches(_value);
 			} else if (_field.equalsIgnoreCase("Year")) {
 				return !handleDigitComparison(imdbInfo.getYear());
 			} else if (_field.equalsIgnoreCase("Director")) {
-				return _operator.equals("!") ? imdbInfo.getDirector().matches(_value) :
-						!imdbInfo.getDirector().matches(_value);
+				return _operator.equals("!") == imdbInfo.getDirector().matches(_value);
 			} else if (_field.equalsIgnoreCase("Genre")) {
-				return _operator.equals("!") ? imdbInfo.getGenre().matches(_value) :
-						!imdbInfo.getGenre().matches(_value);
+				return _operator.equals("!") == imdbInfo.getGenre().matches(_value);
 			} else if (_field.equalsIgnoreCase("Plot")) {
-				return _operator.equals("!") ? imdbInfo.getPlot().matches(_value) :
-						!imdbInfo.getPlot().matches(_value);
+				return _operator.equals("!") == imdbInfo.getPlot().matches(_value);
 			} else if (_field.equalsIgnoreCase("Votes")) {
 				return !handleDigitComparison(imdbInfo.getVotes());
 			} else if (_field.equalsIgnoreCase("Rating")) {
@@ -55,8 +51,7 @@ public class IMDBConfig extends Config {
 			} else if (_field.equalsIgnoreCase("Screens")) {
 				return !handleDigitComparison(imdbInfo.getScreens());
 			} else if (_field.equalsIgnoreCase("Limited")) {
-				return _operator.equals("!") ? imdbInfo.getLimited().matches(_value) :
-						!imdbInfo.getLimited().matches(_value);
+				return _operator.equals("!") == imdbInfo.getLimited().matches(_value);
 			}
         } catch (KeyNotFoundException e1) {
 			// No IMDB info found, return true

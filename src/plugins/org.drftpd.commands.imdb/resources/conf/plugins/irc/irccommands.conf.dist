@@ -30,3 +30,14 @@ help.specific ${command} [path]
 input all
 output source
 }
+
+imdbqueue {
+plugin org.drftpd.commands.imdb
+class IMDB
+method doSITE_IMDBQUEUE
+perms =siteop
+help Show number of items in the queue to be processed
+help.specific ${command}
+input all
+output source
+}

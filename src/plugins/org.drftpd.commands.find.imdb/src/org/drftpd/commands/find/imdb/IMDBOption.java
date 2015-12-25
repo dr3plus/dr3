@@ -43,7 +43,10 @@ public class IMDBOption implements OptionInterface {
 			queryParams = new IMDBQueryParams();
 			params.addExtensionData(IMDBQueryParams.IMDBQUERYPARAMS, queryParams);
 		}
-		if (option.equalsIgnoreCase("-imdbdirector")) {
+		if (option.equalsIgnoreCase("-imdbtitle")) {
+			queryParams.setTitle(args[0]);
+			params.setInodeType(AdvancedSearchParams.InodeType.DIRECTORY);
+		} else if (option.equalsIgnoreCase("-imdbdirector")) {
 			queryParams.setDirector(args[0]);
 			params.setInodeType(AdvancedSearchParams.InodeType.DIRECTORY);
 		} else if (option.equalsIgnoreCase("-imdbgenre")) {

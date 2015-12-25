@@ -27,6 +27,7 @@ public class IMDBQueryParams {
 
 	public static final Key<IMDBQueryParams> IMDBQUERYPARAMS = new Key<IMDBQueryParams>(IMDBQueryParams.class, "imdbqueryparams");
 	
+	private String _title;
 	private String _director;
 	private String _genre;
 	private Integer _minVotes;
@@ -37,6 +38,10 @@ public class IMDBQueryParams {
 	private Integer _maxYear;
 	private Integer _minScreens;
 	private Integer _maxScreens;
+
+	public String getTitle() {
+		return _title;
+	}
 	
 	public String getDirector() {
 		return _director;
@@ -76,6 +81,10 @@ public class IMDBQueryParams {
 
 	public Integer getMaxScreens() {
 		return _maxScreens;
+	}
+
+	public void setTitle(String title) {
+		_title = title;
 	}
 	
 	public void setDirector(String director) {
