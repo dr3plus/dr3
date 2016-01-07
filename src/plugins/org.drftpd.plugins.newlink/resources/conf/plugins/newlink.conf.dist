@@ -1,0 +1,11 @@
+#Do not create link if dir name equals
+newlinks.exclude=cd1;cd2;cd3;cd4;cd5;disk1;disk2;disk3;disk4;disk5;sample;covers;cover;ac3;addon
+
+#do not create link for thoses sections
+newlinks.excludesec=pre;groups
+
+#where to store links
+newlinks.basefolder=/
+
+#max new links to keep
+newlinks.maxlinks=1
