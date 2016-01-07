@@ -1,2 +1,2 @@
 #  dr3
-drftpd 3+
+Project moved to active git repo https://github.com/drftpd-ng/
