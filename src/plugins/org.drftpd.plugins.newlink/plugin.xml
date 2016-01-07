@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<!DOCTYPE plugin PUBLIC "-//JPF//Java Plug-in Manifest 1.0" "http://jpf.sourceforge.net/plugin_1_0.dtd">
+<plugin id="org.drftpd.plugins.newlink" version="3.0.0">
+    <doc>
+		<doc-text>Creates symlink for last uploaded/pre</doc-text>
+	</doc>
+    <attributes>
+		<attribute id="DefaultBuild" value="false" />
+		<attribute id="MustBuild" value="false" />
+	</attributes>
+	<requires>
+	    <import plugin-id="org.drftpd.commands.dir" exported="true" />
+        <import plugin-id="org.drftpd.commands.pre" exported="true" />
+	</requires>
+	<runtime>
+		<library id="org.drftpd.plugins.newlink" path="classes/" type="code">
+			<export prefix="*" />
+		</library>
+	</runtime>
+
+	<extension plugin-id="org.drftpd.commands.pre" point-id="PostHook" id="NEWPRELINKPostHook">
+		<parameter id="ParentMethod" value="doSITE_PRE" />
+		<parameter id="HookClass" value="org.drftpd.plugins.newdir.NewLinkPostHook" />
+		<parameter id="HookMethod" value="createLastPreLink" />
+		<parameter id="Priority" value="1" />
+	</extension>
+
+    <extension plugin-id="org.drftpd.commands.dir" point-id="PostHook" id="NEWMKDLINKPostHook">
+		<parameter id="ParentMethod" value="doMKD" />
+		<parameter id="HookClass" value="org.drftpd.plugins.newdir.NewLinkPostHook" />
+		<parameter id="HookMethod" value="createLastRaceLink" />
+		<parameter id="Priority" value="1" />
+	</extension>
+</plugin>
